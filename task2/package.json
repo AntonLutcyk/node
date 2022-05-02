@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "express": "^4.18.0",
-    "express-handlebars": "^6.0.5",
-    "npm": "^8.8.0"
-  }
-}
