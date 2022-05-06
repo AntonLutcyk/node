@@ -18,3 +18,5 @@ userRouter.delete('/:userId', userController.deleteUser);
 
 userRouter.get('/:userId', userController.getUserById);
 
+userRouter.patch('/:userId', userController.updateUser);
+
