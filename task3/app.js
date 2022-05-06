@@ -14,7 +14,7 @@ app.engine('hbs', engine({defaultLayout: false}));
 app.set('view engine', '.hbs')
 app.set('views', './views')
 
-mongoose.connect(MONGODB).then(value =>  {
+mongoose.connect(MONGO_DB).then(value =>  {
     console.log('Connection success');
 })
 
