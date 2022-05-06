@@ -57,6 +57,24 @@ module.exports = {
 
     },
 
+    updateUser: async (req, res) => {
+        try {
+            const { name } = req.body;
+
+            const car = await User.findOneAndUpdate({name: name.trim()});
+
+            res.json(car);
+
+        } catch (e) {
+            res
+                .status(400)
+                .json({
+                    message: e.message
+                })
+        }
+
+    },
+
     getUserById: async (req, res) => {
 
         try {
