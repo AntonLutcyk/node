@@ -16,14 +16,15 @@ userRouter.post('/',
   userMiddlewares.checkAge,
   userController.createUser);
 
-
-userRouter.all('/userId', userMiddlewares.checkIsUserPresent);
-userRouter.delete('/:userId', userController.deleteUser);
-userRouter.get('/:userId', userController.getUserById);
-
 userRouter.patch('/:userId',
   userMiddlewares.checkIsEmailDuplicate,
   userMiddlewares.checkAge,
   userMiddlewares.checkAge,
   userController.updateUser);
+
+userRouter.all('/userId', userMiddlewares.checkIsUserPresent);
+userRouter.delete('/:userId', userController.deleteUser);
+userRouter.get('/:userId', userController.getUserById);
+
+
     
