@@ -9,15 +9,12 @@ module.exports = {
     try {
 
       const { user, body: { pass } } = req;
-
-      await emailService.sendMail('antohaa1337@gmail.com', emailActionsEnum.WELCOME);
-
-      await authService.comparePassword(user.password, pass);
-
       const tokenPair = authService.generateTokenPair( { userId: user._id });
 
+      await emailService.sendMail('antohaa1337@gmail.com', emailActionsEnum.WELCOME);
+      await authService.comparePassword(user.password, pass);
       await OAuth.create({user_id: user._id, ...tokenPair});
-
+    
       res.json({
         ...tokenPair,
         user
@@ -40,13 +37,10 @@ module.exports = {
     try {
 
       const refresh_token = req.get(headersEnum.authorization);
-
       const authUsers = req.authUser;
-
-      await OAuth.deleteOne({ refresh_token });
-
       const createTokenPair = authService.generateTokenPair({userId: authUsers._id});
-
+      
+      await OAuth.deleteOne({ refresh_token });
       await OAuth.create({_user_id: authUsers._id, ...createTokenPair});
 
       res.json({
