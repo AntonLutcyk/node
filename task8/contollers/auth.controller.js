@@ -5,98 +5,109 @@ const OAuth = require('../db/OAuth.model');
 const ActionToken = require('../db/ActionToken.model');
 const User = require('../db/User.model');
 
-module.exports = {
+/* eslint-env es6 */
+/* eslint-disable no-console */
 
-  login: async (req, res, next) => {
-    try {
 
-      const { user, body: { pass } } = req;
+const login = async (req, res, next) => {
+  try {
 
-      await authService.comparePassword(user.password, pass);
+    const { user, body: { pass } } = req;
 
-      const tokenPair = authService.generateTokenPair( { userId: user._id });
+    await authService.comparePassword(user.password, pass);
 
-      await OAuth.create({user_id: user._id, ...tokenPair});
+    const tokenPair = authService.generateTokenPair( { userId: user._id });
 
-      res.json({
-        ...tokenPair,
-        user
-      });
-    } catch (e) {
-      next(e);
-    }
-  },
+    await OAuth.create({user_id: user._id, ...tokenPair});
 
-  logout: async (req, res, next) => {
-    try {
-      await OAuth.deleteMany({ user_id: req.authUser._id });
-      
-    } catch (e) {
-      next(e);
-    }
-  },
+    res.json({
+      ...tokenPair,
+      user
+    });
+  } catch (e) {
+    next(e);
+  }
+}
 
-  refresh: async (req, res, next) => {
-    try {
+const logout = async (req, res, next) => {
+  try {
+    await OAuth.deleteMany({ user_id: req.authUser._id });
 
-      const refresh_token = req.get(headersEnum.authorization);
+  } catch (e) {
+    next(e);
+  }
+}
 
-      const authUsers = req.authUser;
+const refresh = async (req, res, next) => {
+  try {
 
-      await OAuth.deleteOne({ refresh_token });
+    const refresh_token = req.get(headersEnum.authorization);
 
-      const createTokenPair = authService.generateTokenPair({userId: authUsers._id});
+    const authUsers = req.authUser;
 
-      await OAuth.create({_user_id: authUsers._id, ...createTokenPair});
+    await OAuth.deleteOne({ refresh_token });
 
-      res.json({
-        authUsers,
-        ...createTokenPair
-      });
-    } catch (e) {
-      next(e);
-    }
-  },
+    const createTokenPair = authService.generateTokenPair({userId: authUsers._id});
 
-  forgotPassword: async (req, res, next) => {
-    try {
+    await OAuth.create({_user_id: authUsers._id, ...createTokenPair});
 
-      const { user } = req;
+    res.json({
+      authUsers,
+      ...createTokenPair
+    });
+  } catch (e) {
+    next(e);
+  }
+}
 
-      const token = authService.generateActionToken({userId: user._id});
 
-      await ActionToken.create({
-        token,
-        user_id: user._id,
-        actionType: actionTypesENUM.FORGOT_PASSWORD
-      })
+const forgotPassword = async (req, res, next) => {
+  try {
 
-      const forgotPasswordUrl = `${SITE_URL}/password/forgot?token=${token}`
+    const { user } = req;
+    const token = authService.generateActionToken({userId: user._id});
+    const forgotPasswordUrl = `${SITE_URL}/password/forgot?token=${token}`;
 
-      await emailService.sendMail({
+    await emailService.sendMail(user.email,
+      emailActionsEnum.FORGOT_PASSWORD,
+      {
         forgotPasswordUrl,
         userName: user.name
       });
-      res.json('ok');
-    } catch (e) {
-      next(e);
-    }
-  },
 
-  setPasswordAfterForgot: async (req, res, next) => {
-    try {
-
-      const { user, body } = req;
-      const newPass = await authService.hashPassword(body.password);
-
-      await User.updateOne({_id: user._id}, { password: newPass});
-      await OAuth.deleteMany({ user_id: user._id});
-      await ActionToken.deleteOne( { token: body.token });
-
-      res.json('ok');
-    } catch (e) {
-      next(e);
-    }
+    await ActionToken.create({
+      token,
+      user_id: user._id,
+      actionType: actionTypesENUM.FORGOT_PASSWORD
+    })
+      
+    res.json('ok');
+  } catch (e) {
+    next(e);
   }
+}
+
+const setPasswordAfterForgot = async (req, res, next) => {
+  try {
+
+    const { user, body } = req;
+    const newPass = await authService.hashPassword(body.password);
+
+    await User.updateOne({_id: user._id}, { password: newPass});
+    await OAuth.deleteMany({ user_id: user._id});
+    await ActionToken.deleteOne( { token: body.token });
+
+    res.json('ok');
+  } catch (e) {
+    next(e);
+  }
+}
+
+module.exports = {
+  setPasswordAfterForgot,
+  forgotPassword,
+  refresh,
+  login,
+  logout
 }
 
