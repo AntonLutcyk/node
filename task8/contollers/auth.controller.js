@@ -68,6 +68,12 @@ const forgotPassword = async (req, res, next) => {
     const token = authService.generateActionToken({userId: user._id});
     const forgotPasswordUrl = `${SITE_URL}/password/forgot?token=${token}`;
 
+     await ActionToken.create({
+      token,
+      user_id: user._id,
+      actionType: actionTypesENUM.FORGOT_PASSWORD
+    })
+    
     await emailService.sendMail(user.email,
       emailActionsEnum.FORGOT_PASSWORD,
       {
@@ -75,12 +81,7 @@ const forgotPassword = async (req, res, next) => {
         userName: user.name
       });
 
-    await ActionToken.create({
-      token,
-      user_id: user._id,
-      actionType: actionTypesENUM.FORGOT_PASSWORD
-    })
-      
+  
     res.json('ok');
   } catch (e) {
     next(e);
